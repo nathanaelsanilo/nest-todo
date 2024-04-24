@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
@@ -9,12 +19,22 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  findAll(): Promise<TodoListDto[]> {
-    return this.todoService.findAll();
+  findAll(@Query('name') name?: string): Promise<TodoListDto[]> {
+    return this.todoService.findAll(name);
   }
 
   @Post()
   create(@Body() createDto: TodoCreateDto): Promise<TodoDetailDto> {
     return this.todoService.create(createDto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
+    return this.todoService.delete(id);
+  }
+
+  @Patch(':id/complete')
+  complete(@Param('id', ParseIntPipe) id: number): Promise<TodoDetailDto> {
+    return this.todoService.complete(id);
   }
 }

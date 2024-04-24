@@ -45,6 +45,8 @@ describe('TodoController', () => {
           useValue: {
             findAll: jest.fn().mockResolvedValue(mockAll),
             create: jest.fn().mockResolvedValue(mockDetailDto),
+            delete: jest.fn().mockResolvedValue(true),
+            complete: jest.fn(),
           },
         },
       ],
@@ -58,15 +60,82 @@ describe('TodoController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should return all todo', async () => {
+  it('should return all todo', () => {
     controller.findAll();
     expect(service.findAll).toHaveBeenCalled();
   });
 
-  it('should create new todo', async () => {
+  it('should return all todo with query', async () => {
+    const spyAll = jest.spyOn(service, 'findAll');
+    const mockAll: TodoListDto[] = [
+      {
+        description: 'lunch',
+        id: 1,
+        is_complete: false,
+        timestamp: '',
+      },
+      {
+        description: 'dinner',
+        id: 2,
+        is_complete: false,
+        timestamp: '',
+      },
+    ];
+    spyAll.mockResolvedValueOnce(mockAll);
+
+    const result = await controller.findAll();
+    expect(result).toEqual(mockAll);
+    expect(service.findAll).toHaveBeenCalled();
+
+    const mockQueryResult = [
+      {
+        description: 'lunch',
+        id: 1,
+        is_complete: false,
+        timestamp: '',
+      },
+    ];
+    spyAll.mockResolvedValueOnce(mockQueryResult);
+
+    const queryName = 'lunch';
+    const queryResult = await controller.findAll(queryName);
+
+    expect(service.findAll).toHaveBeenCalled();
+    expect(service.findAll).toHaveBeenCalledWith(queryName);
+
+    expect(queryResult).toEqual(mockQueryResult);
+  });
+
+  it('should create new todo', () => {
     controller.create(createDto);
 
     expect(controller.create(createDto)).resolves.toEqual(mockDetailDto);
     expect(service.create).toHaveBeenCalled();
+  });
+
+  it('should delete todo', () => {
+    const id = 1;
+    controller.delete(id);
+
+    expect(service.delete).toHaveBeenCalledTimes(1);
+    expect(service.delete).toHaveBeenCalledWith(id);
+    expect(controller.delete(id)).resolves.toBe(true);
+  });
+
+  it('should complete todo', async () => {
+    const dto = {
+      id: 1,
+      timestamp: '',
+      description: '',
+      is_complete: false,
+    };
+    jest.spyOn(service, 'complete').mockResolvedValue(dto);
+
+    const id = 1;
+    const result = await controller.complete(id);
+
+    expect(service.complete).toHaveBeenCalledTimes(1);
+    expect(service.complete).toHaveBeenCalledWith(id);
+    expect(result).toEqual(dto);
   });
 });

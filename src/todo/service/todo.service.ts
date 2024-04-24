@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
@@ -13,9 +13,12 @@ export class TodoService {
     @InjectRepository(Todo) private todoRepository: Repository<Todo>,
   ) {}
 
-  async findAll(): Promise<TodoListDto[]> {
-    const data = await this.todoRepository.find();
-    return TodoMapper.toListDto(data);
+  async findAll(name?: string): Promise<TodoListDto[]> {
+    const entities = await this.todoRepository.findBy({
+      description: name ? Like(`%${name}%`) : undefined,
+    });
+
+    return TodoMapper.toListDto(entities);
   }
 
   async create(dto: TodoCreateDto): Promise<TodoDetailDto> {
@@ -32,5 +35,27 @@ export class TodoService {
   async findOne(id: number): Promise<TodoDetailDto> {
     const data = await this.todoRepository.findOne({ where: { id } });
     return TodoMapper.toDetailDto(data);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const entity = await this.todoRepository.findOneOrFail({
+      where: { id },
+    });
+    await this.todoRepository.remove(entity);
+
+    return true;
+  }
+
+  async complete(id: number): Promise<TodoDetailDto> {
+    const entity = await this.todoRepository.findOneOrFail({
+      where: { id },
+    });
+
+    const result = await this.todoRepository.save({
+      id,
+      isComplete: !entity.isComplete,
+    });
+
+    return TodoMapper.toDetailDto(result);
   }
 }
