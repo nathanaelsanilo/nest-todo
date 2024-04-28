@@ -1,10 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { Base } from './base.entity';
 
 @Entity({ name: 'todos' })
-export class Todo {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Todo extends Base {
   @Column()
   description: string;
 
@@ -13,4 +11,7 @@ export class Todo {
 
   @Column({ type: 'timestamp' })
   timestamp: string;
+
+  @Column({ name: 'completed_date', type: 'timestamp', nullable: true })
+  completedDate: Date;
 }
