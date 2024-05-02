@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { TodoCreateDto } from '../dto/todo-create.dto';
+import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
 import { TodoService } from '../service/todo.service';
 import { TodoController } from './todo.controller';
-import { TodoCreateDto } from '../dto/todo-create.dto';
-import { TodoDetailDto } from '../dto/todo-detail.dto';
 
 const mockAll: TodoListDto[] = [
   {
@@ -47,6 +47,7 @@ describe('TodoController', () => {
             create: jest.fn().mockResolvedValue(mockDetailDto),
             delete: jest.fn().mockResolvedValue(true),
             complete: jest.fn(),
+            countComplete: jest.fn(),
           },
         },
       ],
@@ -137,5 +138,22 @@ describe('TodoController', () => {
     expect(service.complete).toHaveBeenCalledTimes(1);
     expect(service.complete).toHaveBeenCalledWith(id);
     expect(result).toEqual(dto);
+  });
+
+  it('should count completed todo', async () => {
+    jest.spyOn(service, 'countComplete').mockResolvedValueOnce({
+      completed: 1,
+      progress: 50,
+      total: 2,
+    });
+
+    const result = await controller.countComplete();
+
+    expect(service.countComplete).toHaveBeenCalled();
+    expect(result).toEqual({
+      completed: 1,
+      progress: 50,
+      total: 2,
+    });
   });
 });

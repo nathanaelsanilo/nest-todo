@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
 import { Todo } from '../entity/todo.entity';
 import { TodoService } from './todo.service';
-import { Repository } from 'typeorm';
 
 const listTodo: Todo[] = [
   {
@@ -13,12 +13,18 @@ const listTodo: Todo[] = [
     description: 'lunch',
     isComplete: false,
     timestamp: '',
+    completedDate: new Date('2020-12-31 08:59:59'),
+    createdDate: new Date('2020-12-31 08:59:59'),
+    updatedDate: new Date('2020-12-31 08:59:59'),
   },
   {
     id: 2,
     description: 'breakfast',
     isComplete: true,
     timestamp: '',
+    completedDate: new Date('2020-12-31 08:59:59'),
+    createdDate: new Date('2020-12-31 08:59:59'),
+    updatedDate: new Date('2020-12-31 08:59:59'),
   },
 ];
 
@@ -112,22 +118,35 @@ describe('TodoService', () => {
   });
 
   it('should complete todo', async () => {
+    const completedDate = new Date();
     const mockEntity = {
       isComplete: false,
       id: 1,
       description: '',
       timestamp: '',
+      completedDate: null,
+      createdDate: new Date('2020-12-31 08:59:59'),
+      updatedDate: new Date('2020-12-31 10:59:59'),
     };
 
-    const spyFind = jest.spyOn(repository, 'findOneOrFail');
-    spyFind.mockResolvedValueOnce(mockEntity);
+    const dto = new TodoDetailDto();
+    dto.description = '';
+    dto.id = 1;
+    dto.is_complete = true;
+    dto.timestamp = '';
 
+    const spyFind = jest.spyOn(repository, 'findOneOrFail');
     const spySave = jest.spyOn(repository, 'save');
+
+    spyFind.mockResolvedValueOnce(mockEntity);
     spySave.mockResolvedValueOnce({
       id: 1,
       isComplete: true,
       description: '',
       timestamp: '',
+      completedDate: completedDate,
+      createdDate: new Date('2020-12-31 08:59:59'),
+      updatedDate: new Date(),
     });
 
     const id = 1;
@@ -137,14 +156,48 @@ describe('TodoService', () => {
     expect(spyFind).toHaveBeenCalledWith({ where: { id: 1 } });
 
     expect(spySave).toHaveBeenCalledTimes(1);
-    expect(spySave).toHaveBeenCalledWith({ id: 1, isComplete: true });
-
-    const dto = new TodoDetailDto();
-    dto.description = '';
-    dto.id = 1;
-    dto.is_complete = true;
-    dto.timestamp = '';
+    expect(spySave).toHaveBeenCalledWith({
+      id: 1,
+      description: '',
+      isComplete: true,
+      timestamp: '',
+      completedDate: completedDate,
+      createdDate: new Date('2020-12-31 08:59:59'),
+      updatedDate: new Date('2020-12-31 10:59:59'),
+    });
 
     expect(result).toEqual(dto);
+  });
+
+  it('should count completed todo', async () => {
+    const spyFind = jest.spyOn(repository, 'find');
+    spyFind.mockResolvedValueOnce([
+      {
+        id: 1,
+        description: 'lunch',
+        isComplete: false,
+        timestamp: '',
+        completedDate: null,
+        createdDate: new Date('2020-12-31 08:59:59'),
+        updatedDate: new Date('2020-12-31 10:59:59'),
+      },
+      {
+        id: 2,
+        description: 'breakfast',
+        isComplete: true,
+        timestamp: '',
+        completedDate: new Date('2020-12-31 08:59:59'),
+        createdDate: new Date('2020-12-31 08:59:59'),
+        updatedDate: new Date('2020-12-31 08:59:59'),
+      },
+    ]);
+
+    const result = await service.countComplete();
+
+    expect(result).toEqual({
+      total: 2,
+      completed: 1,
+      progress: 50,
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
+import { TodoCountCompletedDto } from '../dto/todo-count-completed.dto';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
@@ -51,11 +52,23 @@ export class TodoService {
       where: { id },
     });
 
-    const result = await this.todoRepository.save({
-      id,
-      isComplete: !entity.isComplete,
-    });
+    entity.isComplete = !entity.isComplete;
+    entity.completedDate = entity.isComplete ? new Date() : null;
+
+    const result = await this.todoRepository.save(entity);
 
     return TodoMapper.toDetailDto(result);
+  }
+
+  async countComplete(): Promise<TodoCountCompletedDto> {
+    const dto = new TodoCountCompletedDto();
+
+    const result = await this.todoRepository.find();
+
+    dto.completed = result.filter((e) => e.isComplete).length;
+    dto.total = result.length;
+    dto.progress = Math.ceil((dto.completed / dto.total) * 100);
+
+    return dto;
   }
 }

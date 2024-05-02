@@ -9,6 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { TodoCountCompletedDto } from '../dto/todo-count-completed.dto';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
@@ -36,5 +37,10 @@ export class TodoController {
   @Patch(':id/complete')
   complete(@Param('id', ParseIntPipe) id: number): Promise<TodoDetailDto> {
     return this.todoService.complete(id);
+  }
+
+  @Get('completed')
+  countComplete(): Promise<TodoCountCompletedDto> {
+    return this.todoService.countComplete();
   }
 }
