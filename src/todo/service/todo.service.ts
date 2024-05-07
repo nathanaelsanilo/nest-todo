@@ -15,8 +15,13 @@ export class TodoService {
   ) {}
 
   async findAll(name?: string): Promise<TodoListDto[]> {
-    const entities = await this.todoRepository.findBy({
-      description: name ? Like(`%${name}%`) : undefined,
+    const entities = await this.todoRepository.find({
+      where: {
+        description: name ? Like(`%${name}%`) : undefined,
+      },
+      order: {
+        id: 'desc',
+      },
     });
 
     return TodoMapper.toListDto(entities);
@@ -63,10 +68,10 @@ export class TodoService {
   async countComplete(): Promise<TodoCountCompletedDto> {
     const dto = new TodoCountCompletedDto();
 
-    const result = await this.todoRepository.find();
+    const [result, count] = await this.todoRepository.findAndCount();
 
     dto.completed = result.filter((e) => e.isComplete).length;
-    dto.total = result.length;
+    dto.total = count;
     dto.progress = Math.ceil((dto.completed / dto.total) * 100);
 
     return dto;
