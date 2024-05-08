@@ -16,6 +16,7 @@ const listTodo: Todo[] = [
     completedDate: new Date('2020-12-31 08:59:59'),
     createdDate: new Date('2020-12-31 08:59:59'),
     updatedDate: new Date('2020-12-31 08:59:59'),
+    orderKey: 1,
   },
   {
     id: 2,
@@ -25,6 +26,7 @@ const listTodo: Todo[] = [
     completedDate: new Date('2020-12-31 08:59:59'),
     createdDate: new Date('2020-12-31 08:59:59'),
     updatedDate: new Date('2020-12-31 08:59:59'),
+    orderKey: 2,
   },
 ];
 
@@ -74,6 +76,7 @@ describe('TodoService', () => {
             find: jest.fn().mockResolvedValue(listTodo),
             findBy: jest.fn().mockResolvedValue(listTodo),
             findOne: jest.fn().mockResolvedValue(oneTodo),
+            findAndCount: jest.fn().mockResolvedValue([listTodo, 2]),
             delete: jest.fn(),
             remove: jest.fn(),
             findOneOrFail: jest.fn(),
@@ -119,7 +122,7 @@ describe('TodoService', () => {
 
   it('should complete todo', async () => {
     const completedDate = new Date();
-    const mockEntity = {
+    const mockEntity: Todo = {
       isComplete: false,
       id: 1,
       description: '',
@@ -127,6 +130,7 @@ describe('TodoService', () => {
       completedDate: null,
       createdDate: new Date('2020-12-31 08:59:59'),
       updatedDate: new Date('2020-12-31 10:59:59'),
+      orderKey: 1,
     };
 
     const dto = new TodoDetailDto();
@@ -147,6 +151,7 @@ describe('TodoService', () => {
       completedDate: completedDate,
       createdDate: new Date('2020-12-31 08:59:59'),
       updatedDate: new Date(),
+      orderKey: 1,
     });
 
     const id = 1;
@@ -164,6 +169,7 @@ describe('TodoService', () => {
       completedDate: completedDate,
       createdDate: new Date('2020-12-31 08:59:59'),
       updatedDate: new Date('2020-12-31 10:59:59'),
+      orderKey: 1,
     });
 
     expect(result).toEqual(dto);
@@ -180,6 +186,7 @@ describe('TodoService', () => {
         completedDate: null,
         createdDate: new Date('2020-12-31 08:59:59'),
         updatedDate: new Date('2020-12-31 10:59:59'),
+        orderKey: 1,
       },
       {
         id: 2,
@@ -189,6 +196,7 @@ describe('TodoService', () => {
         completedDate: new Date('2020-12-31 08:59:59'),
         createdDate: new Date('2020-12-31 08:59:59'),
         updatedDate: new Date('2020-12-31 08:59:59'),
+        orderKey: 2,
       },
     ]);
 
@@ -199,5 +207,36 @@ describe('TodoService', () => {
       completed: 1,
       progress: 50,
     });
+  });
+
+  it('should reorder', async () => {
+    const list: Todo[] = [
+      {
+        id: 1,
+        description: 'lunch',
+        isComplete: false,
+        timestamp: '',
+        completedDate: null,
+        createdDate: new Date('2020-12-31 08:59:59'),
+        updatedDate: new Date('2020-12-31 10:59:59'),
+        orderKey: 1,
+      },
+      {
+        id: 2,
+        description: 'breakfast',
+        isComplete: true,
+        timestamp: '',
+        completedDate: new Date('2020-12-31 08:59:59'),
+        createdDate: new Date('2020-12-31 08:59:59'),
+        updatedDate: new Date('2020-12-31 08:59:59'),
+        orderKey: 2,
+      },
+    ];
+
+    service.increment(1, list);
+    expect(list[0].id).toBe(2);
+
+    service.decrement(0, list);
+    expect(list[1].id).toBe(2);
   });
 });

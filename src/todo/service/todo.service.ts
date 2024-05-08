@@ -8,6 +8,9 @@ import { TodoListDto } from '../dto/todo-list.dto';
 import { Todo } from '../entity/todo.entity';
 import { TodoMapper } from '../mapper/todo.mapper';
 
+const ONE = 1;
+const ZERO = 0;
+
 @Injectable()
 export class TodoService {
   constructor(
@@ -75,5 +78,23 @@ export class TodoService {
     dto.progress = Math.ceil((dto.completed / dto.total) * 100);
 
     return dto;
+  }
+
+  increment(key: number, list: Todo[]) {
+    if (key === ZERO) return;
+
+    const before = list[key - ONE];
+    const after = list[key];
+    list[key] = before;
+    list[key - ONE] = after;
+  }
+
+  decrement(key: number, list: Todo[]) {
+    if (key === list.length) return;
+
+    const before = list[key + ONE];
+    const after = list[key];
+    list[key] = before;
+    list[key + ONE] = after;
   }
 }
