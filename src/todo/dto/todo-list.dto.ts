@@ -12,4 +12,7 @@ export class TodoListDto {
 
   @IsDateString()
   timestamp: string;
+
+  @IsNumber()
+  order_key: number;
 }

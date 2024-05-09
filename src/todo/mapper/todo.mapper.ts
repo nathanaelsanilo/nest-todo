@@ -19,6 +19,7 @@ export class TodoMapper {
       dto.id = e.id;
       dto.is_complete = e.isComplete;
       dto.timestamp = e.timestamp;
+      dto.order_key = e.orderKey;
       return dto;
     });
   }

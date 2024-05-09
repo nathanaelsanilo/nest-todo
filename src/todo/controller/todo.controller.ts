@@ -14,6 +14,7 @@ import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
 import { TodoService } from '../service/todo.service';
+import { TodoReorderDto } from '../dto/todo-reorder.dto';
 
 @Controller('todos')
 export class TodoController {
@@ -42,5 +43,10 @@ export class TodoController {
   @Get('completed')
   countComplete(): Promise<TodoCountCompletedDto> {
     return this.todoService.countComplete();
+  }
+
+  @Patch('reorder')
+  reorder(@Body() dto: TodoReorderDto) {
+    return this.todoService.reorder(dto);
   }
 }

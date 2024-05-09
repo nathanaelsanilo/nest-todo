@@ -1,15 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { TodoCountCompletedDto } from '../dto/todo-count-completed.dto';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
+import { TodoReorderDto } from '../dto/todo-reorder.dto';
 import { Todo } from '../entity/todo.entity';
 import { TodoMapper } from '../mapper/todo.mapper';
-
-const ONE = 1;
-const ZERO = 0;
 
 @Injectable()
 export class TodoService {
@@ -23,7 +21,7 @@ export class TodoService {
         description: name ? Like(`%${name}%`) : undefined,
       },
       order: {
-        id: 'desc',
+        orderKey: 'desc',
       },
     });
 
@@ -80,21 +78,36 @@ export class TodoService {
     return dto;
   }
 
-  increment(key: number, list: Todo[]) {
-    if (key === ZERO) return;
+  async reorder(dto: TodoReorderDto): Promise<TodoListDto[]> {
+    const ONE = 1;
+    const entity = await this.todoRepository.find({
+      order: {
+        orderKey: 'desc',
+      },
+    });
 
-    const before = list[key - ONE];
-    const after = list[key];
-    list[key] = before;
-    list[key - ONE] = after;
-  }
+    const first = entity.find((e) => e.orderKey === dto.order_key);
 
-  decrement(key: number, list: Todo[]) {
-    if (key === list.length) return;
+    if (dto.order === 'inc') {
+      const second = entity.find((e) => dto.order_key + ONE === e.orderKey);
+      const temp = second.orderKey;
 
-    const before = list[key + ONE];
-    const after = list[key];
-    list[key] = before;
-    list[key + ONE] = after;
+      second.orderKey = first.orderKey;
+      first.orderKey = temp;
+
+      const result = await this.todoRepository.save([first, second]);
+      return TodoMapper.toListDto(result);
+    } else if (dto.order === 'dec') {
+      const second = entity.find((e) => dto.order_key - ONE === e.orderKey);
+      const temp = second.orderKey;
+
+      second.orderKey = first.orderKey;
+      first.orderKey = temp;
+
+      const result = await this.todoRepository.save([first, second]);
+      return TodoMapper.toListDto(result);
+    }
+
+    throw new BadRequestException();
   }
 }
