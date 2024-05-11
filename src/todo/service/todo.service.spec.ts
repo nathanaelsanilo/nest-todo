@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
+import { TodoReorderDto } from '../dto/todo-reorder.dto';
 import { Todo } from '../entity/todo.entity';
 import { TodoService } from './todo.service';
 
@@ -36,12 +37,14 @@ const mockListTodo: TodoListDto[] = [
     description: 'lunch',
     is_complete: false,
     timestamp: '',
+    order_key: 1,
   },
   {
     id: 2,
     description: 'breakfast',
     is_complete: true,
     timestamp: '',
+    order_key: 2,
   },
 ];
 
@@ -210,7 +213,7 @@ describe('TodoService', () => {
   });
 
   it('should reorder', async () => {
-    const list: Todo[] = [
+    const mockAll: Todo[] = [
       {
         id: 1,
         description: 'lunch',
@@ -219,7 +222,7 @@ describe('TodoService', () => {
         completedDate: null,
         createdDate: new Date('2020-12-31 08:59:59'),
         updatedDate: new Date('2020-12-31 10:59:59'),
-        orderKey: 1,
+        orderKey: 2,
       },
       {
         id: 2,
@@ -229,14 +232,23 @@ describe('TodoService', () => {
         completedDate: new Date('2020-12-31 08:59:59'),
         createdDate: new Date('2020-12-31 08:59:59'),
         updatedDate: new Date('2020-12-31 08:59:59'),
-        orderKey: 2,
+        orderKey: 1,
       },
     ];
+    jest.spyOn(repository, 'save');
+    jest.spyOn(repository, 'find').mockResolvedValueOnce(mockAll);
 
-    service.increment(1, list);
-    expect(list[0].id).toBe(2);
+    const dto = new TodoReorderDto();
+    dto.order = 'dec';
+    dto.order_key = 2;
 
-    service.decrement(0, list);
-    expect(list[1].id).toBe(2);
+    const result = await service.reorder(dto);
+    expect(result[1].id).toBe(2);
+
+    dto.order = 'inc';
+    dto.order_key = 1;
+
+    const result2 = await service.reorder(dto);
+    expect(result2[0].id).toBe(1);
   });
 });

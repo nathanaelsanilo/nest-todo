@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TodoCreateDto } from '../dto/todo-create.dto';
 import { TodoDetailDto } from '../dto/todo-detail.dto';
 import { TodoListDto } from '../dto/todo-list.dto';
+import { TodoReorderDto } from '../dto/todo-reorder.dto';
 import { TodoService } from '../service/todo.service';
 import { TodoController } from './todo.controller';
 
@@ -11,12 +12,14 @@ const mockAll: TodoListDto[] = [
     id: 1,
     is_complete: false,
     timestamp: '',
+    order_key: 1,
   },
   {
     description: 'breakfast',
     id: 2,
     is_complete: true,
     timestamp: '',
+    order_key: 2,
   },
 ];
 
@@ -48,6 +51,7 @@ describe('TodoController', () => {
             delete: jest.fn().mockResolvedValue(true),
             complete: jest.fn(),
             countComplete: jest.fn(),
+            reorder: jest.fn(),
           },
         },
       ],
@@ -74,12 +78,14 @@ describe('TodoController', () => {
         id: 1,
         is_complete: false,
         timestamp: '',
+        order_key: 1,
       },
       {
         description: 'dinner',
         id: 2,
         is_complete: false,
         timestamp: '',
+        order_key: 2,
       },
     ];
     spyAll.mockResolvedValueOnce(mockAll);
@@ -94,6 +100,7 @@ describe('TodoController', () => {
         id: 1,
         is_complete: false,
         timestamp: '',
+        order_key: 1,
       },
     ];
     spyAll.mockResolvedValueOnce(mockQueryResult);
@@ -155,5 +162,34 @@ describe('TodoController', () => {
       progress: 50,
       total: 2,
     });
+  });
+
+  it('should reoder', async () => {
+    const mockAll: TodoListDto[] = [
+      {
+        description: '',
+        id: 1,
+        is_complete: false,
+        order_key: 2,
+        timestamp: '',
+      },
+      {
+        description: '',
+        id: 2,
+        is_complete: false,
+        order_key: 1,
+        timestamp: '',
+      },
+    ];
+    jest.spyOn(service, 'reorder').mockResolvedValueOnce(mockAll);
+
+    const dto = new TodoReorderDto();
+    dto.order = 'dec';
+    dto.order_key = 2;
+
+    const result = await controller.reorder(dto);
+
+    expect(service.reorder).toHaveBeenCalled();
+    expect(result).toEqual(mockAll);
   });
 });

@@ -95,8 +95,8 @@ export class TodoService {
       second.orderKey = first.orderKey;
       first.orderKey = temp;
 
-      const result = await this.todoRepository.save([first, second]);
-      return TodoMapper.toListDto(result);
+      await this.todoRepository.save([first, second]);
+      return TodoMapper.toListDto(entity);
     } else if (dto.order === 'dec') {
       const second = entity.find((e) => dto.order_key - ONE === e.orderKey);
       const temp = second.orderKey;
@@ -104,8 +104,8 @@ export class TodoService {
       second.orderKey = first.orderKey;
       first.orderKey = temp;
 
-      const result = await this.todoRepository.save([first, second]);
-      return TodoMapper.toListDto(result);
+      this.todoRepository.save([first, second]);
+      return TodoMapper.toListDto(entity);
     }
 
     throw new BadRequestException();
