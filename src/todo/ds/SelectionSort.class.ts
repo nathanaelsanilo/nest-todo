@@ -1,3 +1,5 @@
+type SortOrder = 'asc' | 'des';
+
 export class SelectionSort {
   static sort(arr: number[]) {
     const n = arr.length;
@@ -16,6 +18,36 @@ export class SelectionSort {
       //   const temp = arr[min_index];
       //   arr[min_index] = arr[i];
       //   arr[i] = temp;
+      [arr[i], arr[min_index]] = [arr[min_index], arr[i]];
+    }
+  }
+
+  static lessThan(a, b): boolean {
+    return a < b;
+  }
+
+  static greaterThan(a, b): boolean {
+    return a > b;
+  }
+
+  static sortObject<TObject>(
+    arr: TObject[],
+    conf: { key: keyof TObject; order: SortOrder },
+  ) {
+    const n = arr.length;
+    const { key, order } = conf;
+    const method =
+      order === 'asc' ? SelectionSort.lessThan : SelectionSort.greaterThan;
+
+    for (let i = 0; i < n - 1; i++) {
+      let min_index = i;
+
+      for (let j = i + 1; j < n; j++) {
+        if (method(arr[j][key], arr[min_index][key])) {
+          min_index = j;
+        }
+      }
+
       [arr[i], arr[min_index]] = [arr[min_index], arr[i]];
     }
   }
